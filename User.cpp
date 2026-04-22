@@ -23,3 +23,4 @@ void User::displayDetails() { // defines method to display user details
 
 bool operator==(const User& a, const User& b) {
     return (a.username == b.username);
+}
