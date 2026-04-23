@@ -1,70 +1,176 @@
-#include <iostream>
-#include <vector>
-#include "User.h"
-#include "Item.h"
-#include "Admin (1).h"
-
-using namespace std;
+#include "Marketplace.h"
 
 int main() {
-    cout << "=== Testing User class ===" << endl;
-    User u1;
-    User u2(101, "alice", "pass123", "alice@email.com");
+    Marketplace marketplace; // Create marketplace instance
+    marketplace.loadFromFile(); // Load existing data if available
 
-    u1.displayDetails();
-    u2.displayDetails();
+    cout << "\n=============================" << endl;
+    cout << "   Online Marketplace" << endl;
+    cout << "=============================" << endl;
 
-    cout << "\nUpdating default user with setters..." << endl;
-    u1.setUserId(102);
-    u1.setUsername("bob");
-    u1.setPassword("secret");
-    u1.setEmail("bob@email.com");
-    u1.displayDetails();
+    int choice;
+    bool running = true;
+    User* currentUser = nullptr; // Track logged-in user
 
-    cout << "\nComparing users with operator==" << endl;
-    User u3(103, "alice", "differentPass", "another@email.com");
-    cout << "u2 == u3 ? " << ((u2 == u3) ? "true" : "false") << endl;
-    cout << "u1 == u2 ? " << ((u1 == u2) ? "true" : "false") << endl;
+    while (running) {
+        // main menu - not logged in
+        if (currentUser == nullptr) {
+            cout << "\n--- Main Menu ---" << endl;
+            cout << "1. Register" << endl;
+            cout << "2. Login" << endl;
+            cout << "3. Exit" << endl;
+            cout << "Choice: ";
+            cin >> choice;
+            cin.ignore();
 
-    cout << "\n=== Testing Admin class ===" << endl;
-    Admin a1;
-    Admin a2(201, "charlie", "adminpass", "charlie@site.com", "super");
+            if (choice == 1) {
+                string username, password, email, role;
+                cout << "Username: ";
+                getline(cin, username);
+                cout << "Password: ";
+                getline(cin, password);
+                cout << "Email: ";
+                getline(cin, email);
+                cout << "Role (User/Admin): ";
+                getline(cin, role);
 
-    a1.displayDetails();
-    a2.displayDetails();
+                try {
+                    marketplace.registerUser(username, password, email, role);
+                } catch (const MarketplaceException& e) {
+                    cerr << "Error: " << e.what() << endl;
+                }
+            }
+            else if (choice == 2) {
+                string username, password;
+                cout << "Username: ";
+                getline(cin, username);
+                cout << "Password: ";
+                getline(cin, password);
 
-    cout << "\nUpdating default admin with setters..." << endl;
-    a1.setUserId(202);
-    a1.setUsername("diana");
-    a1.setPassword("dpass");
-    a1.setEmail("diana@site.com");
-    a1.setAdminLevel("manager");
-    a1.displayDetails();
+                try {
+                    currentUser = marketplace.loginUser(username, password);
+                } catch (const MarketplaceException& e) {
+                    cerr << "Error: " << e.what() << endl;
+                }
+            }
+            else if (choice == 3) {
+                running = false;
+            }
+        }
+        // admin menu
+        else if (currentUser->getRole() == "Admin") {
+            cout << "\n--- Admin Menu (" << currentUser->getUsername() << ") ---" << endl;
+            cout << "1. Browse Listings" << endl;
+            cout << "2. Search by Title" << endl;
+            cout << "3. Sort by Price" << endl;
+            cout << "4. Sort by Title" << endl;
+            cout << "5. View All Users" << endl;
+            cout << "6. Remove Listing" << endl;
+            cout << "7. Logout" << endl;
+            cout << "Choice: ";
+            cin >> choice;
+            cin.ignore();
 
-    cout << "\n=== Testing polymorphism ===" << endl;
-    vector<User*> users;
-    users.push_back(&u2);
-    users.push_back(&a2);
+            if (choice == 1) {
+                marketplace.displayAllListings();
+            }
+            else if (choice == 2) {
+                string title;
+                cout << "Enter title: ";
+                getline(cin, title);
+                marketplace.searchByTitle(title);
+            }
+            else if (choice == 3) {
+                marketplace.sortByPrice();
+                marketplace.displayAllListings();
+            }
+            else if (choice == 4) {
+                marketplace.sortByTitle();
+                marketplace.displayAllListings();
+            }
+            else if (choice == 5) {
+                marketplace.displayAllUsers();
+            }
+            else if (choice == 6) {
+                int id;
+                cout << "Listing ID to remove: ";
+                cin >> id;
+                cin.ignore();
+                try {
+                    marketplace.removeListing(id);
+                } catch (const MarketplaceException& e) {
+                    cerr << "Error: " << e.what() << endl;
+                }
+            }
+            else if (choice == 7) {
+                currentUser = nullptr;
+                cout << "Logged out." << endl;
+            }
+        }
+        // regular user menu
+        else {
+            cout << "\n--- Menu (" << currentUser->getUsername() << ") ---" << endl;
+            cout << "1. Browse Listings" << endl;
+            cout << "2. Search by Title" << endl;
+            cout << "3. Sort by Price" << endl;
+            cout << "4. Sort by Title" << endl;
+            cout << "5. Create Listing" << endl;
+            cout << "6. Logout" << endl;
+            cout << "Choice: ";
+            cin >> choice;
+            cin.ignore();
 
-    for (User* user : users) {
-        user->displayDetails();
-        cout << "Role from getRole(): " << user->getRole() << endl;
+            if (choice == 1) {
+                marketplace.displayAllListings();
+            }
+            else if (choice == 2) {
+                string title;
+                cout << "Enter title: ";
+                getline(cin, title);
+                marketplace.searchByTitle(title);
+            }
+            else if (choice == 3) {
+                marketplace.sortByPrice();
+                marketplace.displayAllListings();
+            }
+            else if (choice == 4) {
+                marketplace.sortByTitle();
+                marketplace.displayAllListings();
+            }
+            else if (choice == 5) {
+                string title, desc, brand, category;
+                double price;
+                cout << "Item title: ";
+                getline(cin, title);
+                cout << "Description: ";
+                getline(cin, desc);
+                cout << "Brand: ";
+                getline(cin, brand);
+                cout << "Category: ";
+                getline(cin, category);
+                cout << "Price (EUR): ";
+                cin >> price;
+                cin.ignore();
+
+                try {
+                    if (price < 0)
+                        throw MarketplaceException("Price cannot be negative.");
+
+                    Item item(title, desc, brand, category);
+                    Listing listing(0, price, currentUser->getUsername(), item);
+                    marketplace.addListing(listing);
+                } catch (const MarketplaceException& e) { 
+                    cerr << "Error: " << e.what() << endl;
+                }
+            }
+            else if (choice == 6) {
+                currentUser = nullptr;
+                cout << "Logged out." << endl;
+            }
+        }
     }
 
-    cout << "\n=== Testing Item class ===" << endl;
-    Item item1;
-    Item item2("Laptop", "15-inch laptop with 16GB RAM", "Lenovo", "Electronics");
-
-    item1.displayDetails();
-    item2.displayDetails();
-
-    cout << "\nUpdating default item with setters..." << endl;
-    item1.setTitle("Shoes");
-    item1.setDescription("Running shoes with cushioned sole");
-    item1.setBrand("Nike");
-    item1.setCategory("Footwear");
-    item1.displayDetails();
-
-    cout << "\n=== All tests finished ===" << endl;
+    marketplace.saveToFile();
+    cout << "Goodbye!" << endl;
     return 0;
 }
