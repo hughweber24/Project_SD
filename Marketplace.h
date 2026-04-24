@@ -15,9 +15,11 @@ private:
     int nextUserId; //auto incremement IDs for new users and listings
     int nextListingId;
     string dataFile;
+    const static int MaxListings = 5;
 
 public:
     Marketplace(); //default
+    Marketplace(string filename);
     ~Marketplace(); // destructor
 
 
@@ -32,10 +34,12 @@ public:
     // listings
     void addListing(Listing& listing);
     void removeListing(int listingId);
+    void removeListingUser(int ListingId, string seller); //can only delete their own listings
     void displayAllListings();
     void sortByPrice();
     void sortByTitle(); //alphabetically by title
     int searchByTitle(string title);
+    int getMaxListing() {return MaxListings; }
 
 
 
