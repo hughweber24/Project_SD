@@ -15,7 +15,7 @@ private:
     int nextUserId; //auto incremement IDs for new users and listings
     int nextListingId;
     string dataFile;
-    const static int MaxListings = 5;
+    const static int MaxListings = 20;
 
 public:
     Marketplace(); //default
