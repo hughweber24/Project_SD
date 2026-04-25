@@ -6,6 +6,13 @@ Marketplace::Marketplace() { //default
     dataFile = "data.txt";
 }
 
+Marketplace::Marketplace(string filename) {
+    
+    nextUserId = 1;
+    nextListingId = 1;
+    dataFile = filename;
+}
+
 Marketplace::~Marketplace() { //destructor
     for (int i = 0; i < users.size(); i++) {
         delete users[i];
@@ -21,10 +28,18 @@ User* Marketplace::registerUser(string username, string password, string email, 
     }
 
     User* newUser = nullptr;
-    if (role == "Admin") { 
+
+    for(int i = 0; i < role.length(); i++){ //changes input to lowercase to stop error messages
+    role[i] = tolower(role[i]);
+    }
+
+   if (role == "admin") { 
         newUser = new Admin(nextUserId, username, password, email, "basic");
-    } else {
+    } else if(role == "user"){
         newUser = new User(nextUserId, username, password, email);
+    } else {
+        cout << "Not a valid role. Please try again." << endl;
+        return nullptr;
     }
 
     nextUserId++;
@@ -47,10 +62,10 @@ User* Marketplace::loginUser(string username, string password) { //checks if use
 
 
 
-void Marketplace::displayAllUsers() { //not neccessary
+void Marketplace::displayAllUsers() { 
     if (users.empty()) {
         cout << "No users registered." << endl;
-        return;
+        return; //not neccessary just safety net
     }
 
     cout << "\n--- All Users (" << users.size() << ") ---" << endl;
@@ -75,6 +90,10 @@ bool Marketplace::usernameExists(string username) {
 // ----------------------------Listing functions -------------------------------------------------------
 
 void Marketplace::addListing(Listing& listing) {
+    if(listings.size() >= MaxListings){
+        cerr << "Marketplace is full, max" << MaxListings << " listings. Not added" <<endl;
+        return;
+    }
     listing.setListingId(nextListingId); //add new ID to listing
     nextListingId++;
     listings.push_back(listing);
@@ -95,13 +114,26 @@ void Marketplace::removeListing(int listingId) { //admin privledge
 }
 
 
+void Marketplace::removeListingUser(int listingId, string seller){
+    for(int i = 0; i < listings.size(); i++){
+        if(listings[i].getListingId() == listingId){
+            if(listings[i].getSellerUsername() != seller){
+                throw MarketplaceException("You can only delete your own listings.");
+            }
+            listings.erase(listings.begin() + i);
+            cout << "Listing #" << listingId << " removed." << endl;
+            return;
+        }
+    }
+    throw MarketplaceException("Listing not found.");
+}
 
 void Marketplace::displayAllListings() { //admin privledge
     if (listings.empty()) {
         cout << "No listings available." << endl;
         return; //just in case
     }
-    cout << "\n--- Listings (" << listings.size() << ") ---" << endl;
+    cout << "\n--- Listings (" << listings.size() << "/" << MaxListings << ") ---" << endl;
     for (int i = 0; i < listings.size(); i++) {
         listings[i].displayDetails();
         cout << endl;
